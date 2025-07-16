@@ -1,0 +1,66 @@
+{
+  "name": "SELENINFA",
+  "NO": 36,
+  "base_stats": [
+    95,
+    70,
+    73,
+    60,
+    85,
+    11.72
+  ],
+  "types": [
+    "NORMALE",
+    "NORMALE"
+  ],
+  "expected_level": [
+    58,
+    800000
+  ],
+  "level_up_moves": [
+    [
+      0,
+      [
+        "CANTO",
+        "NORMALE",
+        15,
+        0,
+        55,
+        47
+      ]
+    ],
+    [
+      1,
+      [
+        "DOPPIASBERLA",
+        "NORMALE",
+        10,
+        15,
+        85,
+        3
+      ]
+    ],
+    [
+      2,
+      [
+        "MINIMIZZATO",
+        "NORMALE",
+        20,
+        0,
+        0,
+        107
+      ]
+    ],
+    [
+      3,
+      [
+        "METRONOMO",
+        "NORMALE",
+        10,
+        0,
+        0,
+        118
+      ]
+    ]
+  ]
+}

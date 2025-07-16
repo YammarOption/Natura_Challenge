@@ -1,0 +1,66 @@
+{
+  "name": "MISSINGNO",
+  "NO": 0,
+  "base_stats": [
+    33,
+    136,
+    1,
+    29,
+    6,
+    5.66
+  ],
+  "types": [
+    "UCCELLO",
+    "NORMALE"
+  ],
+  "expected_level": [
+    67,
+    345420
+  ],
+  "level_up_moves": [
+    [
+      0,
+      [
+        "PISTOLACQUA",
+        "ACQUA",
+        25,
+        40,
+        100,
+        55
+      ]
+    ],
+    [
+      1,
+      [
+        "PISTOLACQUA",
+        "ACQUA",
+        25,
+        40,
+        100,
+        55
+      ]
+    ],
+    [
+      2,
+      [
+        "AEROATTACCO",
+        "VOLANTE",
+        5,
+        140,
+        90,
+        143
+      ]
+    ],
+    [
+      3,
+      [
+        "",
+        "",
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  ]
+}
