@@ -31,7 +31,6 @@ class GameMonitorServer(QThread):
                 with self.conn:
                         print("server connected")
                         while True:
-                            print("Waiting message")
                             data = self.conn.recv(1024)
                             if not data: break
                             strData=data.decode('utf-8')

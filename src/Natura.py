@@ -1,15 +1,20 @@
+from math import sqrt
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QApplication, QMenuBar, QHBoxLayout, QVBoxLayout,
     QLabel, QPushButton, QGridLayout, QGraphicsColorizeEffect,
     QGraphicsOpacityEffect, QSizePolicy,QFrame
 )
-from PyQt5.QtGui import QCloseEvent, QFont, QColor, QPixmap
+from PyQt5.QtGui import QCloseEvent, QFont, QColor, QPixmap,QFontMetrics
 from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 import src.Twitch.TwitchNaturaController as TwitchNaturaController
 from src.GameMonitorServer import GameMonitorServer
 import configparser
 import json
+
+ACC_MODIFIERS = [0.25, 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00]
+# Eva modifiers are the same as ACC_MODIFIERS inverted
+#EVA_MODIFIERS = [0.25, 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00]
 
 class SepLine(QFrame):
     def __init__(self, parent=None):
@@ -71,7 +76,6 @@ class CounterWidget(QWidget):
         return self.count
 
     def set_count(self, value):
-        value
         self.count = value
         self.value_label.setText(str(self.count))
         
@@ -135,11 +139,11 @@ class movebox():
         #layout = QHBoxLayout()
         #layout.setContentsMargins(5, 0, 5, 0)
         #layout.setSpacing(15)
-        self.movelabel = self.create_label(155, Qt.AlignLeft)
+        self.movelabel = self.create_label(200, Qt.AlignLeft)
         self.movelabel.setText(self.name)
-        self.powLevel = self.create_label(70, Qt.AlignRight)
-        self.precLabel = self.create_label(70, Qt.AlignRight)
-        self.PPLabel = self.create_label(120, Qt.AlignLeft)
+        self.powLevel = self.create_label(80, Qt.AlignRight)
+        self.precLabel = self.create_label(80, Qt.AlignRight)
+        self.PPLabel = self.create_label(200, Qt.AlignLeft,QSizePolicy.Expanding)
 
         # Header row (empty name)
         if self.name == "":
@@ -160,11 +164,12 @@ class movebox():
             self.powLevel.setText("-")
 
         # Precision
+        self.prec=moveArray[4]
         self.precLabel.setText(str(int(moveArray[4])) if moveArray[4] > 0 else "-")
 
         # PP
         self.maxPP = int(moveArray[2])
-        self.PPLabel.setText(f"PP: {self.maxPP}/{self.maxPP}")
+        self.PPLabel.setText(f"  PP: {self.maxPP}/{self.maxPP}")
 
         return (
             self.movelabel,
@@ -175,24 +180,45 @@ class movebox():
         #self.setMinimumHeight(30)  # Optional: unify row height
 
 
-    def create_label(self, min_width, alignment=Qt.AlignLeft):
+    def create_label(self, min_width, alignment=Qt.AlignLeft,policy=QSizePolicy.Preferred):
         font = QFont("Sanserif", self.Mainparent.textsize)
         label = QLabel()
         label.setFont(font)
         label.setMinimumWidth(min_width)
         label.setAlignment(alignment | Qt.AlignVCenter)
-        #label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        label.setSizePolicy(policy, QSizePolicy.Preferred)
         return label
 
     def updatePP(self,PPcount):
         if self.code == 0: return
-        self.PPLabel.setText("PP: "+str(PPcount)+"/"+str(self.maxPP))
+        self.PPLabel.setText("  PP: "+str(PPcount)+"/"+str(self.maxPP))
     
-    def updatePrec(self, code, newPrec):
+    def updatePrec(self, Eva, Acc):
         if self.code == 0: return
-        if code == self.code:
-            newPrec = round(100*newPrec/255)
-            self.precLabel.setText(str(newPrec) if newPrec <= 100 else "-")
+        newPrec = round(self.prec*ACC_MODIFIERS[Acc-1]*ACC_MODIFIERS[-Eva],2)
+   #     print(f"Acc: {Acc}, Prec: {self.prec}, ACC_MODIFIERS[Acc-1]: {ACC_MODIFIERS[Acc-1]}, ACC_MODIFIERS[-Eva]: {ACC_MODIFIERS[-Eva]}, newPrec: {newPrec}")
+        # Format newPrec: remove zero decimals, show integer if .0, else show up to 2 decimals
+        if newPrec <= 100:
+            if newPrec == int(newPrec):
+                self.precLabel.setText(str(int(newPrec)))
+            else:
+                self.precLabel.setText(f"{newPrec:.2f}".rstrip('0').rstrip('.'))
+        else:
+            self.precLabel.setText("-")
+        if newPrec > self.prec :
+            color = "lime"
+        elif newPrec < self.prec:
+            color = "red"
+        else:
+            color = "white"
+        self.precLabel.setStyleSheet(f"color:{color}")
+
+    def resetPrec(self):
+        if self.code == 0: return
+        self.precLabel.setText(str(self.prec) if self.prec <= 100 else "-")
+        self.precLabel.setStyleSheet("color:white")
+
+
 
     def updateMove(self,moveArray):
         self.name=moveArray[0]
@@ -211,11 +237,12 @@ class movebox():
 
         if moveArray[4]>0:
             prec = int(moveArray[4])
+            self.prec=prec
             self.precLabel.setText(str(prec))
         else : self.precLabel.setText("-")
         self.code=moveArray[5]
         self.maxPP = int(moveArray[2])
-        self.PPLabel.setText("PP: "+str(self.maxPP)+"/"+str(self.maxPP))
+        self.PPLabel.setText("  PP: "+str(self.maxPP)+"/"+str(self.maxPP))
     
     def copymove(self, source: 'movebox'):
         self.name=source.name
@@ -226,6 +253,7 @@ class movebox():
         if source.powLevel.text() != "-" and (self.type == self.parentTypes[0] or self.type == self.parentTypes[1]):
             self.movelabel.setStyleSheet("color: rgb(0,255,0)")
         else :self.movelabel.setStyleSheet("color:white")
+        self.prec=source.prec
         self.precLabel.setText(source.precLabel.text())     
         self.maxPP = source.maxPP
         self.PPLabel.setText(source.PPLabel.text())
@@ -270,7 +298,7 @@ class Natura(QMainWindow):
 
         label_container = QVBoxLayout()
         if self.monitor:
-            self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.numsize,2,islevel=True)
+            self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.numsize,1,islevel=True)
         else: self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.numsize,5,islevel=True)
         self.lvlabel.setFont(QFont("Sanserif", self.textsize))
         label_container.addStretch(1)
@@ -302,27 +330,28 @@ class Natura(QMainWindow):
         statgrid = QGridLayout()
         statgrid.setContentsMargins(0, 0, 0, 0)
         #statgrid.setSpacing(1)
-        statslabels=["PS   ","VEL. ","ATT.","SPEC.","DIF.","CRIT."]
+        statslabels=["PS   ","VEL. ","ATT.","SPEC.","DIF.","%CRIT"]
         value_indices = [0, 3, 1, 4, 2, 5]
         for i in range(3):
             for j in range(0,6,3):
                     label = QLabel(statslabels[i * 2 + int(j/2)])
                     #label.setWordWrap(True)
-                    label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+                    label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+                    label.setStyleSheet("background-color: black; border:black; color:white;font-family:Pokemon GB")                    
+                    label.setMinimumWidth(label.sizeHint().width())
 
                     # Map index to value index: 0->0, 1->3, 2->2, 3->4, 4->2
                     value_index = value_indices[i * 2 + int(j/2)]
                     if (i*2+int(j/2) == 5):
                         value = self.data["base_stats"][value_index]
-                        value_label = QLabel(f"{value}%")
-                        statExp_label = QLabel(f"x{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)}")
+                        value_label = QLabel(f"{value}")
+                        statExp_label = QLabel(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
                     else:
                         if self.monitor: 
                             value_label = QLabel(str(self.data["base_stats"][value_index]))
-                            statExp_label=QLabel("(0)")
+                            statExp_label=QLabel("(+0)")
                         else:
                             value_label = QLabel(str(self.data["base_stats"][value_index]))
-                    label.setStyleSheet("background-color: black; border:black; color:white")
                     label.setFont(QFont("Sanserif", self.textsize))
                     value_label.setStyleSheet("background-color: black; border: black; color:white")
                     value_label.setMinimumWidth(100)
@@ -341,7 +370,10 @@ class Natura(QMainWindow):
                     #statWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
                     #statgrid.addWidget(statWidget, i, j, alignment=Qt.AlignCenter)
                     self.monstats[i*2  + int(j/2)] = (value_label,statExp_label)
-            middle_layout.addLayout(statgrid)
+        self.boostLabel=QLabel("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
+        middle_layout.addLayout(statgrid)
+        middle_layout.addWidget(self.boostLabel)
+
         middle_layout.addWidget(SepLine())
         movelayout = QGridLayout()
         #movebox.setContentsMargins(0, 0, 0, 0)
@@ -351,7 +383,7 @@ class Natura(QMainWindow):
         for i in range(4):
                 #print(self.moves[i*2+j][1][0])
                 currmoves[self.moves[i][1][0]]=self.moves[i][1]
-                self.mv[i ] = movebox(self,self.data["types"])
+                self.mv[i] = movebox(self,self.data["types"])
                 (name,pow,prec,pp) = self.mv[i].getWidgets(self.moves[i][1])
                 for j, label in enumerate((name, pow, prec, pp)):
                     movelayout.addWidget(label, i, j)
@@ -457,7 +489,7 @@ class Natura(QMainWindow):
 
     def updateScore(self,levelUp=False):
         if levelUp:
-            self.monstats[5][1].setText(f"x{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)}")
+            self.monstats[5][1].setText(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
             self.updateNextMove()
         if self.monitor:
             # ARROTONDA(MAX(0,001; 100 *    POTENZA(MAX(0; 1 - (C2 - 163000)/(1000000 - 163000)); 2) *    POTENZA(0,998; D2) *    POTENZA(0,7; E2) *    POTENZA(0,95; F2) *    POTENZA(0,8; G2) ); 3)
@@ -474,9 +506,7 @@ class Natura(QMainWindow):
             g2 = self.stats[3].get_count()
             base = max(0, 1 - (c2 - 163000) / (self.maxexp - 163000))
             final_score = round(
-                max(0.000
-                
-                ,
+                max(0.000,
                     100* (base ** 1.1)
                     * (0.998 ** d2)
                     * (0.7 ** e2)
@@ -517,17 +547,20 @@ class Natura(QMainWindow):
             return
         if not self.lvlabel.get_count()==lv: 
             self.lvlabel.set_count(lv)
-            self.monstats[5][1].setText(f"x{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)}")
-
+            self.monstats[5][1].setText(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
+            self.boostLabel.setText("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
         for i in range(5):
             battlestat = int(values[i+6],16)#updated value
             actStat = int(values[i+1],16)
+            statExp=int(values[i+12],16)
+            statBoost= int((int(sqrt(statExp))*self.lvlabel.get_count())/400)
+            self.monstats[i][1].setText("(+"+str(statBoost)+")")
+            if statExp == 65535: #max stat exp
+                self.monstats[i][1].setstyleSheet("color: lime")
             if i ==0 or battle==0 or battlestat==0: #PS, not in battle, 
                 self.monstats[i][0].setText(str(actStat))
-                self.monstats[i][1].setText("("+str(int(values[i+12],16))+")")
             else:
                     self.monstats[i][0].setText(str(battlestat))
-                    self.monstats[i][1].setText("("+str(int(values[i+12],16))+")")
                     if battlestat > actStat :
                         color = "lime"
                     elif battlestat < actStat:
@@ -538,11 +571,12 @@ class Natura(QMainWindow):
 
         totExp = int(values[11],16)
         self.expLabel.setText("Exp: "+str(totExp))
+        self.exp=totExp
         #17-20
-
         for i in range(0,4):
             self.mv[i].updatePP(int(values[i+17],16))
-            self.mv[i].updatePrec(int(values[21],16),int(values[22],16))
+            if battle > 0:
+                self.mv[i].updatePrec(int(values[21],16),int(values[22],16))
         self.updateScore(True)
         if (not self.battleSwitch) and battle >0: # not in battle but now we are
             self.battleSwitch=True
@@ -551,4 +585,5 @@ class Natura(QMainWindow):
             self.battleSwitch=False
             for i in range(4): #reset color
                 self.monstats[i+1][0].setStyleSheet(f"background-color: black; border:black; color:white")
+                self.mv[i].resetPrec()
         return

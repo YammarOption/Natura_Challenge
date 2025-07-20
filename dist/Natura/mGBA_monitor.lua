@@ -5,8 +5,8 @@ local monExpStart = 0xd179
 local HpExpStart = 0xd17c
 
 local PPaddrsStart=0xd188
-local currPrec = 0xcfd6
-local currmove = 0xcfd2
+local Placc = 0xcd1e
+local EnemEva = 0xcd33
 local frame_pause = 60*8
 local framecounter = 0
 local sock = nil
@@ -58,8 +58,8 @@ function updateTracker()
 	local movePP2 = emu:read8(PPaddrsStart+1)
 	local movePP3 = emu:read8(PPaddrsStart+2)
 	local movePP4 = emu:read8(PPaddrsStart+3)
-	local prec = emu:read8(currPrec)
-	local move = emu:read8(currmove)
+	local acc = emu:read8(Placc)
+	local eva = emu:read8(EnemEva)
 
     if not sock then return end
 	sock:send(""..string.format("%x",lv)..
@@ -83,8 +83,8 @@ function updateTracker()
 			"@"..string.format("%x",movePP2)..
 			"@"..string.format("%x",movePP3)..
 			"@"..string.format("%x",movePP4)..
-			"@"..string.format("%x",move)..
-			"@"..string.format("%x",prec)
+			"@"..string.format("%x",eva)..
+			"@"..string.format("%x",acc)
 		)
 end
 
