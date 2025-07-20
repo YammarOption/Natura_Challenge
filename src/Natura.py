@@ -274,7 +274,6 @@ class Natura(QMainWindow):
         main_layout = QVBoxLayout()
         self.config = config
         self.textsize = self.config.getint("MAIN", "DIM_TESTO")
-        self.numsize = self.config.getint("MAIN", "DIM_NUMERI")
         self.monitor = self.config.getboolean("MAIN", "USE_MGBA")
         self.twitch = self.config.getboolean("MAIN", "USE_TWITCH")
         with open(f"data/mons_json/{self.name}.json", "r", encoding="utf-8") as f:
@@ -298,15 +297,15 @@ class Natura(QMainWindow):
 
         label_container = QVBoxLayout()
         if self.monitor:
-            self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.numsize,1,islevel=True)
-        else: self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.numsize,5,islevel=True)
+            self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.textsize,1,islevel=True)
+        else: self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.textsize,5,islevel=True)
         self.lvlabel.setFont(QFont("Sanserif", self.textsize))
         label_container.addStretch(1)
         label_container.addWidget(self.lvlabel)
         if self.monitor:
             self.exp=0
             self.expLabel = QLabel("Exp: "+str(self.exp))
-            self.expLabel.setFont(QFont("Sanserif", self.numsize))
+            self.expLabel.setFont(QFont("Sanserif", self.textsize))
             label_container.addWidget(self.expLabel)
         typelabel = QLabel()
         if self.data["types"][0] == self.data["types"][1]:
@@ -360,8 +359,8 @@ class Natura(QMainWindow):
                     value_label.setAlignment(Qt.AlignRight)
                     statExp_label.setAlignment(Qt.AlignRight)
                     label.setAlignment(Qt.AlignLeft)
-                    value_label.setFont(QFont("Sanserif", self.numsize))
-                    statExp_label.setFont(QFont("Sanserif", self.numsize))
+                    value_label.setFont(QFont("Sanserif", self.textsize))
+                    statExp_label.setFont(QFont("Sanserif", self.textsize))
                     #layout.addStretch(1)
                     statgrid.addWidget(label,i,j,alignment=Qt.AlignLeft)
                     statgrid.addWidget(value_label,i,j+1,alignment=Qt.AlignRight)
@@ -371,6 +370,7 @@ class Natura(QMainWindow):
                     #statgrid.addWidget(statWidget, i, j, alignment=Qt.AlignCenter)
                     self.monstats[i*2  + int(j/2)] = (value_label,statExp_label)
         self.boostLabel=QLabel("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
+        self.boostLabel.setFont(QFont("Sanserif", self.textsize-3))
         middle_layout.addLayout(statgrid)
         middle_layout.addWidget(self.boostLabel)
 
@@ -412,7 +412,7 @@ class Natura(QMainWindow):
         self.stats=[None]*4
         for i in range(2):
             for j in range(2):
-                counter = CounterWidget(self,labels[i * 2 + j], self.textsize, self.numsize)
+                counter = CounterWidget(self,labels[i * 2 + j], self.textsize, self.textsize)
                 counter.setMinimumSize(160, 20)
                 counter.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
                 counter_grid.addWidget(counter,i,j, alignment=Qt.AlignLeft)
@@ -426,7 +426,7 @@ class Natura(QMainWindow):
 
         #counter_grid.addStretch(1)
         bottom_layout.addStretch(1)
-        self.final_counter = SimpleCounter("PUNTEGGIO:", self.textsize, self.numsize)
+        self.final_counter = SimpleCounter("PUNTEGGIO:", self.textsize, self.textsize)
         bottom_layout.addWidget(self.final_counter)
         main_layout.addLayout(bottom_layout)
 
