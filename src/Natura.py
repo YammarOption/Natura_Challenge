@@ -344,7 +344,7 @@ class Natura(QMainWindow):
                     if (i*2+int(j/2) == 5):
                         value = self.data["base_stats"][value_index]
                         value_label = QLabel(f"{value}")
-                        statExp_label = QLabel(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
+                        if self.monitor: statExp_label = QLabel(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
                     else:
                         if self.monitor: 
                             value_label = QLabel(str(self.data["base_stats"][value_index]))
@@ -354,25 +354,28 @@ class Natura(QMainWindow):
                     label.setFont(QFont("Sanserif", self.textsize))
                     value_label.setStyleSheet("background-color: black; border: black; color:white")
                     value_label.setMinimumWidth(100)
-                    statExp_label.setMinimumWidth(100)
                     #label.setMinimumWidth(50)
                     value_label.setAlignment(Qt.AlignRight)
-                    statExp_label.setAlignment(Qt.AlignRight)
                     label.setAlignment(Qt.AlignLeft)
                     value_label.setFont(QFont("Sanserif", self.textsize))
-                    statExp_label.setFont(QFont("Sanserif", self.textsize))
                     #layout.addStretch(1)
                     statgrid.addWidget(label,i,j,alignment=Qt.AlignLeft)
-                    statgrid.addWidget(value_label,i,j+1,alignment=Qt.AlignRight)
-                    statgrid.addWidget(statExp_label,i,j+2,alignment=Qt.AlignRight)
-                    #statWidget.setMinimumSize(100, 10)
-                    #statWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                    #statgrid.addWidget(statWidget, i, j, alignment=Qt.AlignCenter)
-                    self.monstats[i*2  + int(j/2)] = (value_label,statExp_label)
-        self.boostLabel=QLabel("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
-        self.boostLabel.setFont(QFont("Sanserif", self.textsize-3))
+
+                    if self.monitor:
+                        statgrid.addWidget(value_label,i,j+1,alignment=Qt.AlignRight)
+                        statExp_label.setMinimumWidth(100)
+                        statExp_label.setAlignment(Qt.AlignRight)
+                        statExp_label.setFont(QFont("Sanserif", self.textsize))
+                        statgrid.addWidget(statExp_label,i,j+2,alignment=Qt.AlignRight)
+                        self.monstats[i*2  + int(j/2)] = (value_label,statExp_label)
+                        self.boostLabel=QLabel("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
+                        self.boostLabel.setFont(QFont("Sanserif", self.textsize-3))
+                    else:
+                        statgrid.addWidget(value_label,i,round(j+1/2)+1,alignment=Qt.AlignRight)
+                        self.monstats[i*2  + int(j/2)] = (value_label,None)
         middle_layout.addLayout(statgrid)
-        middle_layout.addWidget(self.boostLabel)
+        if self.monitor:
+            middle_layout.addWidget(self.boostLabel)
 
         middle_layout.addWidget(SepLine())
         movelayout = QGridLayout()

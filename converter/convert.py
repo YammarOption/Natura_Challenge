@@ -165,7 +165,7 @@ types_dict = {
     "GROUND": "TERRA",
     "ROCK": "ROCCIA",
     "BUG": "INSETTO",
-    "GHOST": "SPIRITO",
+    "GHOST": "SPETTRO",
     "STEEL": "ACCIAIO",
     "FIRE": "FUOCO",
     "WATER": "ACQUA",
@@ -254,7 +254,7 @@ moves = {
     "SLASH": ("LACERAZIONE", "NORMALE", 20, 70, 100, 0),  # Not in list, set to 0
     "FLAMETHROWER": ("LANCIAFIAMME", "FUOCO", 15, 95, 100, 53),
     "LICK": ("LECCATA", "SPETTRO", 30, 20, 100, 122),
-    "BIND": ("LEGATUTTO", "NORMALE", 20, 15, 100, 20),
+    "BIND": ("LEGATUTTO", "NORMALE", 20, 15, 85, 20),
     "CONSTRICT": ("LIMITAZIONE", "NORMALE", 35, 10, 100, 132),
     "DREAM_EATER": ("MANGIASOGNI", "PSICO", 15, 100, 100, 138),
     "CRABHAMMER": ("MARTELCHELA", "ACQUA", 10, 90, 85, 152),
@@ -302,7 +302,7 @@ moves = {
     "ROCK_THROW": ("SASSATA", "ROCCIA", 15, 50, 65, 88),
     "LIGHT_SCREEN": ("SCHERMOLUCE", "PSICO", 30, 0, 0, 113),
     "SLAM": ("SCHIANTO", "NORMALE", 20, 80, 75, 21),
-    "STRUGGLE": ("SCONTRO", "NORMALE", 0, 50, 100, 0),  # Not in list, set to 0
+    "STRUGGLE": ("SCONTRO", "NORMALE", 0, 50, 100, 0),
     "ACID_ARMOR": ("SCUDO ACIDO", "VELENO", 40, 0, 0, 151),
     "DOUBLE_EDGE": ("SDOPPIATORE", "NORMALE", 15, 100, 100, 38),
     "BARRAGE": ("SFERATTACCO", "NORMALE", 20, 15, 85, 140),
@@ -311,7 +311,7 @@ moves = {
     "SOLARBEAM": ("SOLARRAGGIO", "ERBA", 10, 120, 100, 76),
     "SONICBOOM": ("SONICBOOM", "NORMALE", 20, 0, 90, 49),
     "SLEEP_POWDER": ("SONNIFERO", "ERBA", 15, 0, 75, 79),
-    "SUBSTITUTE": ("SOSTITUTO", "NORMALE", 10, 0, 0, 0),  # Not in list, set to 0
+    "SUBSTITUTE": ("SOSTITUTO", "NORMALE", 10, 0, 0, 0),
     "SUBMISSION": ("SOTTOMISS.", "LOTTA", 25, 80, 80, 66),
     "SPIKE_CANNON": ("SPARALANCE", "NORMALE", 15, 20, 100, 131),
     "MIRROR_MOVE": ("SPECULMOSSA", "VOLANTE", 20, 0, 0, 119),

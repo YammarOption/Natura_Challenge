@@ -16,16 +16,20 @@ class TwitchNaturaController(QThread):
         self.mainWindow=mainWindowSignal
         self.TWITCH_CHANNEL = config.get("MAIN","channel")
         self.allowedMods = config.get("MAIN","mods").lower().replace(" ","").split(",")
-        print(self.allowedMods)
+        #print(self.allowedMods)
         self.MESSAGE_RATE = config.getfloat("MAIN","message_rate")#0.5
         self.MAX_QUEUE_LENGTH = config.getint("MAIN","queue_length")#= 10
         self.MAX_WORKERS = config.getint("MAIN","workers")#5 # Maximum number of threads you can
+        self.TIMEOUT = config.getint("MAIN","timeout_timer")#5 # Maximum number of threads you can
+        self.disconnect_probe = config.getboolean("MAIN","disconnect_probe")#5 # Maximum number of threads you can
             # Replace this with your Twitch username. Must be all lowercase.
         self.last_time = time.time()
         self.message_queue = []
         self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS)
         self.active_tasks = []
         self.t = TwitchPlays_Connection.Twitch()
+        self.t.TIMEOUT=self.TIMEOUT
+        self.t.disconnect_probe=self.disconnect_probe
         self.t.twitch_connect(self.TWITCH_CHANNEL)
 
     def handle_message(self,message):
@@ -36,24 +40,24 @@ class TwitchNaturaController(QThread):
                 msg=msg.replace(acc,accentDict[acc])
             print("Got this message from " + username + ": " + msg)
             if username in self.allowedMods:
-                if msg.startswith("!koset"):
-                    update= int(msg.replace("!koset","").replace("\U000e0000",""))
+                if msg.startswith("!ko"):
+                    update= int(msg.replace("!ko","").replace("\U000e0000",""))
                     self.mainWindow.emit(0,update)
                 #EXTRA TRAINERS
-                if msg.startswith("!extraset"):
-                    update= int(msg.replace("!extraset","").replace("\U000e0000",""))
+                if msg.startswith("!extra"):
+                    update= int(msg.replace("!extra","").replace("\U000e0000",""))
                     self.mainWindow.emit(1,update)
                 #skipped
-                if msg.startswith("!skipset"):
-                    update= int(msg.replace("!skipset","").replace("\U000e0000",""))
+                if msg.startswith("!skip"):
+                    update= int(msg.replace("!skip","").replace("\U000e0000",""))
                     self.mainWindow.emit(2,update)
                 #wild 
-                if msg.startswith("!selvset"):
-                    update= int(msg.replace("!selvset","").replace("\U000e0000",""))
+                if msg.startswith("!selv"):
+                    update= int(msg.replace("!selv","").replace("\U000e0000",""))
                     self.mainWindow.emit(3,update)
                 #lv
-                if msg.startswith("!lvset"):
-                    update= int(msg.replace("!lvset","").replace("\U000e0000",""))
+                if msg.startswith("!lv"):
+                    update= int(msg.replace("!lv","").replace("\U000e0000",""))
                     self.mainWindow.emit(4,update)
         except Exception as e:
             print("Encountered exception: " + str(e))

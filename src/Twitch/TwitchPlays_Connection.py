@@ -14,6 +14,7 @@ import random
 import time
 import os
 import json
+import winsound
 import concurrent.futures
 
 MAX_TIME_TO_WAIT_FOR_LOGIN = 3
@@ -26,8 +27,11 @@ class Twitch:
     login_ok = False
     channel = ''
     login_timestamp = 0
+    TIMEOUT=15
+    disconnect_probe=True
 
     def twitch_connect(self, channel):
+        self.lastPing=time.time()
         if self.sock: self.sock.close()
         self.sock = None
         self.partial = b''
@@ -40,16 +44,17 @@ class Twitch:
         # Create socket
         print('Connecting to Twitch...')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #self.sock.settimeout(3)
 
         # Attempt to connect socket
         self.sock.connect(('irc.chat.twitch.tv', 6667))
+        self.sock.settimeout(1.0/60.0)
 
         # Log in anonymously
         user = 'justinfan%i' % random.randint(10000, 99999)
         print('Connected to Twitch. Logging in anonymously...')
         self.sock.send(('PASS asdf\r\nNICK %s\r\n' % user).encode())
 
-        self.sock.settimeout(1.0/60.0)
 
         self.login_timestamp = time.time()
 
@@ -72,16 +77,19 @@ class Twitch:
             #         # This "error" is expected -- we receive it if timeout is set to zero, and there is no data to read on the socket.
             #         break
             except Exception as e:
+                winsound.PlaySound('data/Warning.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
                 print('Unexpected connection error. Reconnecting in a second...', e)
                 self.reconnect(1)
                 return []
             if not received:
+                winsound.PlaySound('data/Warning.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
                 print('Connection closed by Twitch. Reconnecting in 5 seconds...')
                 self.reconnect(5)
                 return []
             buffer += received
 
         if buffer:
+            self.lastPing=time.time()
             # Prepend unparsed data from previous iterations
             if self.partial:
                 buffer = self.partial + buffer
@@ -109,9 +117,11 @@ class Twitch:
                 if matches[0].start() != 0:
                     # If we get here, we might have missed a message. pepeW
                     print('either ddarknut fucked up or twitch is bonkers, or both I mean who really knows anything at this point')
-
             return res
-
+        #print(time.time() - self.lastPing)
+        if self.disconnect_probe and time.time() - self.lastPing > self.TIMEOUT:
+            self.lastPing=time.time()
+            winsound.PlaySound('data/Warning.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         return []
 
     def twitch_receive_messages(self):
@@ -125,6 +135,8 @@ class Twitch:
                 })
             elif cmd == 'PING':
                 self.sock.send(b'PONG :tmi.twitch.tv\r\n')
+                print("ping")
+                self.lastPing=time.time()
             elif cmd == '001':
                 print('Successfully logged in. Joining channel %s.' % self.channel)
                 self.sock.send(('JOIN #%s\r\n' % self.channel).encode())
