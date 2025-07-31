@@ -49,7 +49,8 @@ class Twitch:
         # Attempt to connect socket
         self.sock.connect(('irc.chat.twitch.tv', 6667))
         self.sock.settimeout(1.0/60.0)
-
+        self.startTimeoutWindow=time.time()
+        self.NoAlarmWindow=True
         # Log in anonymously
         user = 'justinfan%i' % random.randint(10000, 99999)
         print('Connected to Twitch. Logging in anonymously...')
@@ -119,7 +120,9 @@ class Twitch:
                     print('either ddarknut fucked up or twitch is bonkers, or both I mean who really knows anything at this point')
             return res
         #print(time.time() - self.lastPing)
-        if self.disconnect_probe and time.time() - self.lastPing > self.TIMEOUT:
+        if time.time() - self.startTimeoutWindow > self.TIMEOUT*80:
+            self.NoAlarmWindow=False
+        if self.disconnect_probe and not self.NoAlarmWindow and time.time() - self.lastPing > self.TIMEOUT:
             self.lastPing=time.time()
             winsound.PlaySound('data/Warning.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         return []
