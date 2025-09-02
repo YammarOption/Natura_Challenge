@@ -218,8 +218,6 @@ class movebox():
         self.precLabel.setText(str(self.prec) if self.prec <= 100 else "-")
         self.precLabel.setStyleSheet("color:white")
 
-
-
     def updateMove(self,moveArray):
         self.name=moveArray[0]
         self.type = moveArray[1]
@@ -239,11 +237,13 @@ class movebox():
             prec = int(moveArray[4])
             self.prec=prec
             self.precLabel.setText(str(prec))
-        else : self.precLabel.setText("-")
+        else : 
+            self.precLabel.setText("-")
+            self.precLabel.setStyleSheet(f"color:white")
         self.code=moveArray[5]
         self.maxPP = int(moveArray[2])
         self.PPLabel.setText("  PP: "+str(self.maxPP)+"/"+str(self.maxPP))
-    
+
     def copymove(self, source: 'movebox'):
         self.name=source.name
         self.type=source.type
