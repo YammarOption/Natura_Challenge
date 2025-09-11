@@ -268,7 +268,6 @@ class Natura(QMainWindow):
         self.name = mon_name
         self.mv = [None] * 4  # 4 moves
         self.monstats = [None] * 6  # 5 stats + crit
-        self.nextMove = 4
 
     def setup(self, config: configparser.ConfigParser):
         main_layout = QVBoxLayout()
@@ -454,33 +453,32 @@ class Natura(QMainWindow):
             self.gameMonitor = GameMonitorServer(self.gameSignal, self.config)
             self.gameMonitor.start()
     
-    def updateNextMove(self):
-        if self.nextMove >= len(self.moves):
-            return
-        if self.moves[self.nextMove][0] > self.lvlabel.get_count():
-            return
-        freespace=0
-        duplicate=False
+    def updateNextMove(self,currlevel):
+
+        # Find 4 moves closest to current level, going down
+        closest_moves = []
+        found_name=[]
+        next_move=len(self.moves)
+        search_next=True
+        for lvl, move in reversed(self.moves):
+            move_name = move[0]
+            if lvl <= currlevel:
+                if not move_name or move_name  in found_name:
+                    continue
+                closest_moves.append(move)
+                found_name.append(move[0])
+                if len(closest_moves) == 4:
+                    break
+                search_next=False
+            elif search_next:
+                next_move-=1
+        closest_moves = list(reversed(closest_moves))
+        while len(closest_moves) < 4:
+            closest_moves.append(["","", 0, 0, 0, 0])
         for i in range(4):
-            if self.mv[i].name == self.moves[self.nextMove][1][0]:
-                duplicate=True
-                break
-            if not self.mv[i].name:
-                freespace=i
-                break
-        if duplicate: 
-            self.nextMove += 1
-            self.next.setText("Prossima: "+f"{self.moves[self.nextMove][1][0]} ({self.moves[self.nextMove][0]})")
-            return
-        if freespace>0:
-            self.mv[freespace].updateMove(self.moves[self.nextMove][1])
-        else:
-            for i in range(3):
-                self.mv[i].copymove(self.mv[i+1])
-            self.mv[3].updateMove(self.moves[self.nextMove][1])
-        self.nextMove += 1
-        if self.nextMove < len(self.moves):
-            self.next.setText("Prossima: "+f"{self.moves[self.nextMove][1][0]} ({self.moves[self.nextMove][0]})")
+            self.mv[i].updateMove(closest_moves[i])
+        if next_move < len(self.moves):
+            self.next.setText("Prossima: "+f"{self.moves[next_move][1][0]} ({self.moves[next_move][0]})")
         else: self.next.setText("Prossima: --")
 
     def closeEvent(self, a0: QCloseEvent) -> None:
@@ -490,10 +488,10 @@ class Natura(QMainWindow):
         self.close()
         exit()
 
-    def updateScore(self,levelUp=False):
+    def updateScore(self,levelUp=False,currLevel=0):
         if levelUp:
             self.monstats[5][1].setText(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
-            self.updateNextMove()
+            self.updateNextMove(currLevel)
         if self.monitor:
             # ARROTONDA(MAX(0,001; 100 *    POTENZA(MAX(0; 1 - (C2 - 163000)/(1000000 - 163000)); 2) *    POTENZA(0,998; D2) *    POTENZA(0,7; E2) *    POTENZA(0,95; F2) *    POTENZA(0,8; G2) ); 3)
             # Translated to Python:
@@ -527,7 +525,7 @@ class Natura(QMainWindow):
             self.stats[index].set_count(update)
         else:
             self.lvlabel.set_count(update)
-        self.updateScore(index==4)
+        self.updateScore(index==4,update)
 
     @pyqtSlot(str, str)
     def gameUpdate(self, datatype, data):
@@ -548,8 +546,10 @@ class Natura(QMainWindow):
             return
         if lv <3:
             return
+        updateLV=False
         if not self.lvlabel.get_count()==lv: 
             self.lvlabel.set_count(lv)
+            updateLV =True
             self.monstats[5][1].setText(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
             self.boostLabel.setText("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
         for i in range(5):
@@ -580,7 +580,7 @@ class Natura(QMainWindow):
             self.mv[i].updatePP(int(values[i+17],16))
             if battle > 0:
                 self.mv[i].updatePrec(int(values[21],16),int(values[22],16))
-        self.updateScore(True)
+        self.updateScore(updateLV,lv)
         if (not self.battleSwitch) and battle >0: # not in battle but now we are
             self.battleSwitch=True
             return
