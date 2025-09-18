@@ -12,16 +12,17 @@ from src.GameMonitorServer import GameMonitorServer
 import configparser
 import json
 
+
 ACC_MODIFIERS = [0.25, 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00]
 # Eva modifiers are the same as ACC_MODIFIERS inverted
 #EVA_MODIFIERS = [0.25, 0.28, 0.33, 0.40, 0.50, 0.66, 1.00, 1.50, 2.00, 2.50, 3.00, 3.50, 4.00]
 
 class SepLine(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, width=3,style="solid",parent=None):
         super().__init__(parent)
         self.setFrameShape(QFrame.HLine)
         self.setFrameShadow(QFrame.Sunken)
-        self.setStyleSheet("border: 3px solid white;")
+        self.setStyleSheet(f"border: {width}px {style} white;")
         
 class CounterWidget(QWidget):
     def __init__(self, parent, label_text, text_size=12, font_size=12,count=0,islevel=False):
@@ -32,7 +33,7 @@ class CounterWidget(QWidget):
         self.isLevel=islevel
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(2)
+        if not self.isLevel :layout.setSpacing(10)
 
         self.label = QLabel(label_text)
         self.label.setWordWrap(True)
@@ -65,12 +66,12 @@ class CounterWidget(QWidget):
     def increase(self):
         self.count += 1
         self.value_label.setText(str(self.count))
-        self.Mainparent.updateScore(levelUp=self.isLevel)
+        self.Mainparent.updateScore(levelUp=self.isLevel,currLevel=self.count)
 
     def decrease(self):
         self.count = max(0, self.count -1)
         self.value_label.setText(str(self.count))
-        self.Mainparent.updateScore(levelUp=self.isLevel)
+        self.Mainparent.updateScore(levelUp=self.isLevel,currLevel=self.count)
 
     def get_count(self):
         return self.count
@@ -85,12 +86,12 @@ class SimpleCounter(QWidget):
         super().__init__()
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(5)
+        layout.setSpacing(30)
 
         self.label = QLabel(label_text)
         self.label.setWordWrap(True)
         self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        self.value_label = QLabel("100.0")
+        self.value_label = QLabel("100.000")
         self.value_label.setMinimumWidth(60)
         self.value_label.setAlignment(Qt.AlignCenter)
         self.label.setStyleSheet("background-color: black; border: black; color:white")
@@ -100,7 +101,7 @@ class SimpleCounter(QWidget):
         self.value_label.setStyleSheet(
             f"background-color: black; border: black; color: {color}"
         )
-        self.value_label.setFont(QFont("Sanserif", num_size))
+        self.value_label.setFont(QFont("Sanserif", num_size+5))
 
         layout.addWidget(self.label)
         layout.addWidget(self.value_label)
@@ -110,8 +111,8 @@ class SimpleCounter(QWidget):
     def set_count(self, value):
         #print(value)
         if value >= 100:
-            self.value_label.setText(f"{value:0,.1f}")
-        else: self.value_label.setText(f"{value:0,.2f}")
+            self.value_label.setText(f"{value:0,.3f}")
+        else: self.value_label.setText(f"{value:0,.3f}")
         # Ensure colors are always bright enough (avoid dark colors)
         min_brightness = 120
         red = int(min_brightness + (255 - min_brightness) * (1 - value / 100))
@@ -220,6 +221,14 @@ class movebox():
 
     def updateMove(self,moveArray):
         self.name=moveArray[0]
+        if not self.name:
+            self.movelabel.setText("")
+            self.powLevel.setText("")
+            self.precLabel.setText("")
+            self.PPLabel.setText("")
+            self.movelabel.setStyleSheet("color: white")
+            return
+
         self.type = moveArray[1]
         self.movelabel.setText(self.name)
         if moveArray[3]>0:
@@ -278,8 +287,7 @@ class Natura(QMainWindow):
         with open(f"data/mons_json/{self.name}.json", "r", encoding="utf-8") as f:
             self.data = json.load(f)
         self.moves=[ (int (i[0]), i[1]) for i in self.data["level_up_moves"]]
-        self.maxlevel=int(self.data["expected_level"][0])
-        self.maxexp=int(self.data["expected_level"][1])
+        self.expclass=int(self.data["expected_level"][1])
         # --- Top Section ---
         label1 = QLabel("N°" + f"{self.data['NO']:03d}" + " - " + self.data["name"].upper())
         label1.setFont(QFont("Sanserif", self.textsize+3))
@@ -296,7 +304,7 @@ class Natura(QMainWindow):
 
         label_container = QVBoxLayout()
         if self.monitor:
-            self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.textsize,1,islevel=True)
+            self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.textsize,5,islevel=True)
         else: self.lvlabel=CounterWidget(self,"LV:",self.textsize,self.textsize,5,islevel=True)
         self.lvlabel.setFont(QFont("Sanserif", self.textsize))
         label_container.addStretch(1)
@@ -392,12 +400,13 @@ class Natura(QMainWindow):
 
         middle_layout.addLayout(movelayout)
         if len(self.moves)>4:
-            self.next = QLabel("PROSSIMA: "+f"{self.moves[4][1][0]} ({self.moves[4][0]})")
-        else :self.next = QLabel("PROSSIMA: --")
+            self.next = QLabel("Prossima: "+f"{self.moves[4][1][0]} ({self.moves[4][0]})")
+        else :self.next = QLabel("Prossima: --")
         self.next.setAlignment(Qt.AlignLeft)
         self.next.setFont(QFont("Sanserif", self.textsize))
         self.next.setStyleSheet("background-color: black; color: white; border: black;")
         self.next.setMinimumWidth(150)
+        middle_layout.addWidget(SepLine(2,"dashed"))
 
         middle_layout.addWidget(self.next)
 
@@ -406,23 +415,23 @@ class Natura(QMainWindow):
 
         # --- Bottom Section ---
         bottom_layout = QVBoxLayout()
+        bottom_layout.setSpacing(20)
         bottom_layout.addStretch(1)
-        counter_grid = QGridLayout()
+        counter_grid = QVBoxLayout()
+        bottom_layout.setSpacing(10)
         counter_grid.setContentsMargins(0, 0, 0, 0)
-        #counter_grid.setSpacing(1)
-        labels = ["RESET", "EXTRA", "EVIT.", "SELV."]
-        self.stats=[None]*4
+        labels = ["EVIT.", "SELV."]
+        self.stats=[None]*2
         for i in range(2):
-            for j in range(2):
-                counter = CounterWidget(self,labels[i * 2 + j], self.textsize, self.textsize)
-                counter.setMinimumSize(160, 20)
-                counter.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-                counter_grid.addWidget(counter,i,j, alignment=Qt.AlignLeft)
-                self.stats[i * 2 + j] = counter
+            counter = CounterWidget(self,labels[i], self.textsize, self.textsize)
+            counter.setMinimumSize(160, 20)
+            counter.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            counter_grid.addWidget(counter,alignment=Qt.AlignLeft)
+            self.stats[i] = counter
 
-        for i in range(2):
-            counter_grid.setColumnStretch(i, 1)
-            counter_grid.setRowStretch(i, 1)
+        # for i in range(2):
+        #     counter_grid.setColumnStretch(i, 1)
+        #     counter_grid.setRowStretch(i, 1)
 
         bottom_layout.addLayout(counter_grid)
 
@@ -493,26 +502,33 @@ class Natura(QMainWindow):
             self.monstats[5][1].setText(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
             self.updateNextMove(currLevel)
         if self.monitor:
-            # ARROTONDA(MAX(0,001; 100 *    POTENZA(MAX(0; 1 - (C2 - 163000)/(1000000 - 163000)); 2) *    POTENZA(0,998; D2) *    POTENZA(0,7; E2) *    POTENZA(0,95; F2) *    POTENZA(0,8; G2) ); 3)
-            # Translated to Python:
-            # C2 = self.exp
-            # D2 = self.stats[0].get_count()  # RESET
-            # E2 = self.stats[2].get_count()  # SKIP
-            # F2 = self.stats[1].get_count()  # EXTRA
-            # G2 = self.stats[3].get_count()  # SELV.
-            c2 = max(self.exp,163000)
-            d2 = self.stats[0].get_count()
-            e2 = self.stats[2].get_count()
-            f2 = self.stats[1].get_count()
-            g2 = self.stats[3].get_count()
-            base = max(0, 1 - (c2 - 163000) / (self.maxexp - 163000))
-            final_score = round(
-                max(0.000,
-                    100* (base ** 1.1)
-                    * (0.998 ** d2)
-                    * (0.7 ** e2)
-                    * (0.95 ** f2)
-                    * (0.8 ** g2)),2)
+            perc_loss=10
+            skip=self.stats[0].get_count()
+            selv = self.stats[1].get_count()
+            score = 0
+            reallined_exp = self.exp/100000
+            if self.exp < 160000:
+                score=100
+            elif self.expclass==345420:
+              score = 186.29-53.93*reallined_exp  
+            elif self.expclass==1000000: #medium fast
+                if self.exp < 200000:
+                    score = 144.72-27.95*reallined_exp
+                else : score = 113.13-12.63*reallined_exp+0.25*reallined_exp**2 -0.01*reallined_exp**3
+            elif self.expclass==1059860: #medium slow
+                if self.exp < 200000:
+                    score = 134.5-21.58*reallined_exp
+                else : score = 113.13-12.69*reallined_exp+0.25*(self.exp/1059860)**2 -0.01*(self.exp/1059860)**3
+            elif self.expclass==800000: #fast
+                if self.exp < 200000:
+                    score = 150-31.2*reallined_exp
+                else : score = 141.248-33.7634*reallined_exp+3.92464*reallined_exp**2 -0.237851*reallined_exp**3
+            elif self.expclass==1250000: #slow
+                if self.exp < 200000:
+                    score = 120.3-12.57*reallined_exp
+                else : score = 113.13-12.63*reallined_exp+0.25*(self.exp/1250000)**2 -0.01*(self.exp/1250000)**3
+            score =(score*(1-perc_loss/100)**skip)/(2**selv)
+            final_score = max(0.001,min(100,score))          
         else: final_score = max(
             0,
             10 - (max(0, self.lvlabel.get_count() - self.maxlevel) * 0.05 + self.stats[0].get_count() * 0.01 + self.stats[2].get_count() * 0.5 + self.stats[1].get_count() * 0.05 + self.stats[3].get_count() * 0.2)

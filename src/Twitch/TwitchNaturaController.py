@@ -40,13 +40,13 @@ class TwitchNaturaController(QThread):
                 msg=msg.replace(acc,accentDict[acc])
             print("Got this message from " + username + ": " + msg)
             if username in self.allowedMods:
-                if msg.startswith("!ko"):
-                    update= int(msg.replace("!ko","").replace("\U000e0000",""))
-                    self.mainWindow.emit(0,update)
+                # if msg.startswith("!ko"):
+                #     update= int(msg.replace("!ko","").replace("\U000e0000",""))
+                #     self.mainWindow.emit(0,update)
                 #EXTRA TRAINERS
-                if msg.startswith("!extra"):
-                    update= int(msg.replace("!extra","").replace("\U000e0000",""))
-                    self.mainWindow.emit(1,update)
+                # if msg.startswith("!extra"):
+                #     update= int(msg.replace("!extra","").replace("\U000e0000",""))
+                #     self.mainWindow.emit(1,update)
                 #skipped
                 if msg.startswith("!skip"):
                     update= int(msg.replace("!skip","").replace("\U000e0000",""))
