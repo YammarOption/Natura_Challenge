@@ -290,7 +290,7 @@ class Natura(QMainWindow):
         
         top_layout = QHBoxLayout()
         image_label = QLabel()
-        pixmap = QPixmap("data/sprites/" + self.name + ".png")
+        pixmap = QPixmap("data/sprites/" +  f"{self.data['NO']:04d}" + ".png")
         image_label.setPixmap(pixmap)
         top_layout.addWidget(image_label)
 
