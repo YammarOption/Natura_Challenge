@@ -164,7 +164,7 @@ types_dict = {
     "POISON": "VELENO",
     "GROUND": "TERRA",
     "ROCK": "ROCCIA",
-    "BUG": "INSETTO",
+    "BUG": "COLEOTT",
     "GHOST": "SPETTRO",
     "STEEL": "ACCIAIO",
     "FIRE": "FUOCO",
