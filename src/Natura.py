@@ -3,7 +3,7 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QApplication, QMenuBar, QHBoxLayout, QVBoxLayout,
     QLabel, QPushButton, QGridLayout, QGraphicsColorizeEffect,
-    QGraphicsOpacityEffect, QSizePolicy,QFrame
+    QGraphicsOpacityEffect, QSizePolicy,QFrame,QErrorMessage
 )
 from PyQt5.QtGui import QCloseEvent, QFont, QColor, QPixmap,QFontMetrics
 from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
@@ -196,8 +196,12 @@ class movebox():
     
     def updatePrec(self, Eva, Acc):
         if self.code == 0: return
+        if Acc < 1 or Acc > 15:
+            Acc = 8
+        if Eva < 1 or Eva > 15:
+            Eva = 8
         newPrec = round(self.prec*ACC_MODIFIERS[Acc-1]*ACC_MODIFIERS[-Eva],2)
-   #     print(f"Acc: {Acc}, Prec: {self.prec}, ACC_MODIFIERS[Acc-1]: {ACC_MODIFIERS[Acc-1]}, ACC_MODIFIERS[-Eva]: {ACC_MODIFIERS[-Eva]}, newPrec: {newPrec}")
+        #print(f"Acc: {Acc}, Prec: {self.prec}, ACC_MODIFIERS[Acc-1]: {ACC_MODIFIERS[Acc-1]}, ACC_MODIFIERS[-Eva]: {ACC_MODIFIERS[-Eva]}, newPrec: {newPrec}")
         # Format newPrec: remove zero decimals, show integer if .0, else show up to 2 decimals
         if newPrec <= 100:
             if newPrec == int(newPrec):
@@ -222,11 +226,15 @@ class movebox():
     def updateMove(self,moveArray):
         self.name=moveArray[0]
         if not self.name:
+            self.code=0
             self.movelabel.setText("")
             self.powLevel.setText("")
             self.precLabel.setText("")
             self.PPLabel.setText("")
             self.movelabel.setStyleSheet("color: white")
+            self.powLevel.setStyleSheet("color: white")
+            self.precLabel.setStyleSheet("color: white")
+            self.PPLabel.setStyleSheet("color: white")
             return
 
         self.type = moveArray[1]
@@ -236,7 +244,10 @@ class movebox():
             if self.type == self.parentTypes[0] or moveArray[1] == self.parentTypes[1]:
                 power=round(power*1.5)
                 self.movelabel.setStyleSheet("color: rgb(0,255,0)")
-            else: self.movelabel.setStyleSheet("color: white")
+                self.powLevel.setStyleSheet("color: rgb(0,255,0)")
+            else: 
+                self.movelabel.setStyleSheet("color: white")
+                self.powLevel.setStyleSheet("color: white")
             self.powLevel.setText(str(power))
         else :
             self.powLevel.setText("-")
@@ -248,6 +259,7 @@ class movebox():
             self.precLabel.setText(str(prec))
         else : 
             self.precLabel.setText("-")
+            self.prec=0
             self.precLabel.setStyleSheet(f"color:white")
         self.code=moveArray[5]
         self.maxPP = int(moveArray[2])
@@ -489,7 +501,8 @@ class Natura(QMainWindow):
                 if not move_name or move_name  in found_name:
                     continue
                 closest_moves.append(move)
-                found_name.append(move[0])
+                if not self.name=="missingno":
+                    found_name.append(move[0])
                 if len(closest_moves) == 4:
                     break
                 search_next=False
@@ -523,24 +536,29 @@ class Natura(QMainWindow):
             reallined_exp = self.exp/100000
             if self.exp < 160000:
                 score=100
+
             elif self.expclass==345420:
               score = 186.29-53.93*reallined_exp  
+
             elif self.expclass==1000000: #medium fast
                 if self.exp < 200000:
                     score = 144.72-27.95*reallined_exp
                 else : score = 113.13-12.63*reallined_exp+0.25*reallined_exp**2 -0.01*reallined_exp**3
+
             elif self.expclass==1059860: #medium slow
-                if self.exp < 200000:
+                if self.exp < 211972:
                     score = 134.5-21.58*reallined_exp
-                else : score = 113.13-12.69*reallined_exp+0.25*(self.exp/1059860)**2 -0.01*(self.exp/1059860)**3
+                else : score = 113.13-12.69*(self.exp/105986)+0.25*(self.exp/105986)**2 -0.01*(self.exp/105986)**3
+
             elif self.expclass==800000: #fast
                 if self.exp < 200000:
                     score = 150-31.2*reallined_exp
                 else : score = 141.248-33.7634*reallined_exp+3.92464*reallined_exp**2 -0.237851*reallined_exp**3
+
             elif self.expclass==1250000: #slow
-                if self.exp < 200000:
+                if self.exp < 250000:
                     score = 120.3-12.57*reallined_exp
-                else : score = 113.13-12.63*reallined_exp+0.25*(self.exp/1250000)**2 -0.01*(self.exp/1250000)**3
+                else : score = 113.13-12.63*self.exp/1250000+0.25*(self.exp/1250000)**2 -0.01*(self.exp/1250000)**3
             score =(score*(1-perc_loss/100)**skip)/(2**selv)
             final_score = max(0.001,min(100,score))          
         else: final_score = max(
@@ -559,64 +577,64 @@ class Natura(QMainWindow):
 
     @pyqtSlot(str, str)
     def gameUpdate(self, datatype, data):
-        values = [int(x, 16) for x in data.split("@")]
-        if datatype != "GAMELOG":
-            return
-        #labels = ["LV", "PS", "VEL.", "ATT.", "SPEC.", "DIF.", "BATTLE", "BATTLEATT", "BATTLEDEF", "BATTLESPD","BATTLESPEC","EXP","HPEXP","ATTEXP","DEFEXP","SPDEXP","SPECEXP","PP1","PP2","PP3","PP4","MOVE","CURRPREC"]
-       # for i, val in enumerate(values):
-        #    print(f"{labels[i] if i < len(labels) else f'VAL{i}'}: {val}")
-        
-        
-        values = data.split("@")
-        try:
-            lv = int(values[0],16)
-            battle = int(values[6],16)
-        except :
-            print("exception in update from game")
-            return
-        if lv <3:
-            return
-        updateLV=False
-        if not self.lvlabel.get_count()==lv: 
-            self.lvlabel.set_count(lv)
-            updateLV =True
-            self.monstats[5][1].setText(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
-            self.boostLabel.setText("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
-        for i in range(5):
-            battlestat = int(values[i+6],16)#updated value
-            actStat = int(values[i+1],16)
-            statExp=int(values[i+12],16)
-            statBoost= int((int(sqrt(statExp))*self.lvlabel.get_count())/400)
-            self.monstats[i][1].setText("(+"+str(statBoost)+")")
-            if statExp == 65535: #max stat exp
-                self.monstats[i][1].setstyleSheet("color: lime")
-            if i ==0 or battle==0 or battlestat==0: #PS, not in battle, 
-                self.monstats[i][0].setText(str(actStat))
-            else:
-                    self.monstats[i][0].setText(str(battlestat))
-                    if battlestat > actStat :
-                        color = "lime"
-                    elif battlestat < actStat:
-                        color = "red"
-                    else:
-                        color = "white"
-                    self.monstats[i][0].setStyleSheet(f"background-color: black; border:black; color:{color}")
+            values = [int(x, 16) for x in data.split("@")]
+            if datatype != "GAMELOG":
+                return
+            #labels = ["LV", "PS", "VEL.", "ATT.", "SPEC.", "DIF.", "BATTLE", "BATTLEATT", "BATTLEDEF", "BATTLESPD","BATTLESPEC","EXP","HPEXP","ATTEXP","DEFEXP","SPDEXP","SPECEXP","PP1","PP2","PP3","PP4","MOVE","CURRPREC"]
+        # for i, val in enumerate(values):
+            #    print(f"{labels[i] if i < len(labels) else f'VAL{i}'}: {val}")
+            
+            
+            values = data.split("@")
+            try:
+                lv = int(values[0],16)
+                battle = int(values[6],16)
+            except :
+                print("exception in update from game")
+                return
+            if lv <3:
+                return
+            updateLV=False
+            if not self.lvlabel.get_count()==lv: 
+                self.lvlabel.set_count(lv)
+                updateLV =True
+                self.monstats[5][1].setText(f"(X{round((2*self.lvlabel.get_count()+5)/(self.lvlabel.get_count()+5),2)})")
+                self.boostLabel.setText("Boost Stat. Esp. Massimo: +"+str(int(63*(self.lvlabel.get_count()/100))))
+            for i in range(5):
+                battlestat = int(values[i+6],16)#updated value
+                actStat = int(values[i+1],16)
+                statExp=int(values[i+12],16)
+                statBoost= int((int(sqrt(statExp))*self.lvlabel.get_count())/400)
+                self.monstats[i][1].setText("(+"+str(statBoost)+")")
+                if statExp == 65535: #max stat exp
+                    self.monstats[i][1].setstyleSheet("color: lime")
+                if i ==0 or battle==0 or battlestat==0: #PS, not in battle, 
+                    self.monstats[i][0].setText(str(actStat))
+                else:
+                        self.monstats[i][0].setText(str(battlestat))
+                        if battlestat > actStat :
+                            color = "lime"
+                        elif battlestat < actStat:
+                            color = "red"
+                        else:
+                            color = "white"
+                        self.monstats[i][0].setStyleSheet(f"background-color: black; border:black; color:{color}")
 
-        totExp = int(values[11],16)
-        self.expLabel.setText("Exp: "+str(totExp))
-        self.exp=totExp
-        #17-20
-        for i in range(0,4):
-            self.mv[i].updatePP(int(values[i+17],16))
-            if battle > 0:
-                self.mv[i].updatePrec(int(values[21],16),int(values[22],16))
-        self.updateScore(updateLV,lv)
-        if (not self.battleSwitch) and battle >0: # not in battle but now we are
-            self.battleSwitch=True
-            return
-        if self.battleSwitch and battle <1: # was in battle, now not anymore
-            self.battleSwitch=False
-            for i in range(4): #reset color
-                self.monstats[i+1][0].setStyleSheet(f"background-color: black; border:black; color:white")
-                self.mv[i].resetPrec()
-        return
+            totExp = int(values[11],16)
+            self.expLabel.setText("Exp: "+str(totExp))
+            self.exp=totExp
+            #17-20
+            self.updateScore(updateLV,lv)
+            for i in range(0,4):
+                self.mv[i].updatePP(int(values[i+17],16))
+                if battle > 0:
+                    self.mv[i].updatePrec(int(values[21],16),int(values[22],16))
+            if (not self.battleSwitch) and battle >0: # not in battle but now we are
+                self.battleSwitch=True
+                return
+            if self.battleSwitch and battle <1: # was in battle, now not anymore
+                self.battleSwitch=False
+                for i in range(4): #reset color
+                    self.monstats[i+1][0].setStyleSheet(f"background-color: black; border:black; color:white")
+                    self.mv[i].resetPrec()
+        

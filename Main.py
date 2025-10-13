@@ -110,6 +110,7 @@ gen1_pokemon = [
     "Mewtwo", "Mew","Missingno"
 ]
 
+
 # Example usage:
 dialog = ListSelectorDialog(gen1_pokemon)
 if dialog.exec_() == QDialog.Accepted:
@@ -128,4 +129,3 @@ if not  window:
 window.setup(config)
 window.show()
 app.exec()
-
