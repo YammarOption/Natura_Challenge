@@ -50,15 +50,15 @@ class TwitchNaturaController(QThread):
                 #skipped
                 if msg.startswith("!skip"):
                     update= int(msg.replace("!skip","").replace("\U000e0000",""))
-                    self.mainWindow.emit(2,update)
+                    self.mainWindow.emit(0,update)
                 #wild 
                 if msg.startswith("!selv"):
                     update= int(msg.replace("!selv","").replace("\U000e0000",""))
-                    self.mainWindow.emit(3,update)
+                    self.mainWindow.emit(1,update)
                 #lv
                 if msg.startswith("!lv"):
                     update= int(msg.replace("!lv","").replace("\U000e0000",""))
-                    self.mainWindow.emit(4,update)
+                    self.mainWindow.emit(2,update)
         except Exception as e:
             print("Encountered exception: " + str(e))
     

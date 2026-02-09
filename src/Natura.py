@@ -569,11 +569,11 @@ class Natura(QMainWindow):
 
     @pyqtSlot(int, int)
     def twitchUpdate(self, index, update):
-        if index < 4:
+        if index < 2:
             self.stats[index].set_count(update)
         else:
             self.lvlabel.set_count(update)
-        self.updateScore(index==4,update)
+        self.updateScore(index==2,update)
 
     @pyqtSlot(str, str)
     def gameUpdate(self, datatype, data):
