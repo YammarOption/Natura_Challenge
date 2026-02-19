@@ -2,7 +2,6 @@ import concurrent.futures
 import src.Twitch.TwitchPlays_Connection as TwitchPlays_Connection
 from src.Twitch.TwitchPlays_KeyCodes import *
 from PyQt5.QtCore import QThread
-import json
 
 accentDict = {"À":"\u00C0","Á":"\u00C1",
              "È":"\u00C8","É":"\u00C9",

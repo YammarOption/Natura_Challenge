@@ -1,4 +1,5 @@
 local lvAddr = 0xd18C
+local currHp = 0xd015 -- 2 bytes long
 local battleAddr = 0xd057
 local currAttStat = 0xd025
 local monExpStart = 0xd179
@@ -11,6 +12,9 @@ local frame_pause = 60*8
 local framecounter = 0
 local sock = nil
 
+local enemyMonSpecies=0xcfe5 -- Hp = add +1
+local enemyMonFisrstMove = 0xcfed -- 2 bytes * 4
+local enemyMonStat1 = 0xcff6 -- 2 bytes * 4, order is atk, def, speed, spe
 function ST_stop()
 	if not sock then return end
 	console:log("sock Test: Shutting down")
@@ -35,6 +39,7 @@ end
 function updateTracker()
 	--console:log("Sending data")
     local lv = emu:read8(lvAddr)
+	local currHp = emu:read8(currHp)<<8|emu:read8(currHp+1)
     local hp = emu:read8(lvAddr+1)<<8|emu:read8(lvAddr+2)
     local att = emu:read8(lvAddr+3)<<8|emu:read8(lvAddr+4)
     local df = emu:read8(lvAddr+5)<<8|emu:read8(lvAddr+6)
@@ -69,10 +74,11 @@ function updateTracker()
 			"@"..string.format("%x",spe)..
 			"@"..string.format("%x",df)..
 			"@"..string.format("%x",isinbattle)..
+			"@"..string.format("%x",currHp)..
 			"@"..string.format("%x",battlespd)..
 			"@"..string.format("%x", battleatt)..
-			"@"..string.format("%x",battlespe)..
 			"@"..string.format("%x",battledf)..
+			"@"..string.format("%x",battlespe)..
 			"@"..string.format("%x",expstats)..
 			"@"..string.format("%x",HPstatExp)..
 			"@"..string.format("%x",Spdexpstats)..

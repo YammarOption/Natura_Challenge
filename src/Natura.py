@@ -580,7 +580,7 @@ class Natura(QMainWindow):
             values = [int(x, 16) for x in data.split("@")]
             if datatype != "GAMELOG":
                 return
-            #labels = ["LV", "PS", "VEL.", "ATT.", "SPEC.", "DIF.", "BATTLE", "BATTLEATT", "BATTLEDEF", "BATTLESPD","BATTLESPEC","EXP","HPEXP","ATTEXP","DEFEXP","SPDEXP","SPECEXP","PP1","PP2","PP3","PP4","MOVE","CURRPREC"]
+            #labels = ["LV", "PS", "VEL.", "ATT.", "SPEC.", "DIF.", "BATTLE","BattleHP", "BATTLEATT", "BATTLEDEF", "BATTLESPD","BATTLESPEC","EXP","HPEXP","ATTEXP","DEFEXP","SPDEXP","SPECEXP","PP1","PP2","PP3","PP4","MOVE","CURRPREC"]
         # for i, val in enumerate(values):
             #    print(f"{labels[i] if i < len(labels) else f'VAL{i}'}: {val}")
             
@@ -604,10 +604,12 @@ class Natura(QMainWindow):
                 battlestat = int(values[i+6],16)#updated value
                 actStat = int(values[i+1],16)
                 statExp=int(values[i+12],16)
-                statBoost= int((int(sqrt(statExp))*self.lvlabel.get_count())/400)
+                statBoost= int((int(sqrt(statExp-1)+1)*self.lvlabel.get_count())/400)
                 self.monstats[i][1].setText("(+"+str(statBoost)+")")
                 if statExp == 65535: #max stat exp
                     self.monstats[i][1].setstyleSheet("color: lime")
+                if i == 0:
+                    self.monstats[i][0].setText(str(battlestat)+"/"+str(actStat))
                 if i ==0 or battle==0 or battlestat==0: #PS, not in battle, 
                     self.monstats[i][0].setText(str(actStat))
                 else:

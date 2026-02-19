@@ -110,8 +110,6 @@ gen1_pokemon = [
     "Mewtwo", "Mew","Missingno"
 ]
 
-
-# Example usage:
 dialog = ListSelectorDialog(gen1_pokemon)
 if dialog.exec_() == QDialog.Accepted:
     selected_value = dialog.selected_item
