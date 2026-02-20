@@ -300,6 +300,7 @@ class Natura(QMainWindow):
             self.data = json.load(f)
         self.moves=[ (int (i[0]), i[1]) for i in self.data["level_up_moves"]]
         self.expclass=int(self.data["expected_level"][1])
+       
         # --- Top Section ---
         label1 = QLabel("N°" + f"{self.data['NO']:03d}" + " - " + self.data["name"].upper())
         label1.setFont(QFont("Sanserif", self.textsize+3))

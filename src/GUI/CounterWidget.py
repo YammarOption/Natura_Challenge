@@ -15,7 +15,7 @@ class CounterWidget(QWidget):
         label (QLabel): The label displaying the counter's name.
     """
     
-    def __init__(self, parent,updateSignal:pyqtSignal,label_text:str, text_size=12, font_size=12,count=0):
+    def __init__(self, parent,label_text:str, text_size=12, font_size=12,count=0):
         """
         Class constructor for CounterWidget.
 
@@ -27,13 +27,12 @@ class CounterWidget(QWidget):
         """
         super().__init__()
         self.text = label_text
-        self.updateScoreSignal = updateSignal
         QtGui.QFontDatabase.addApplicationFont("data/Pokemon GB.ttf")
         self.Mainparent= parent
         self.count = count
         self.mainlayout = QHBoxLayout()
         self.mainlayout.setContentsMargins(0, 0, 0, 0)
-        if not self.isLevel :self.mainlayout.setSpacing(10)
+        self.mainlayout.setSpacing(10)
 
         self.label = QLabel(label_text)
         self.label.setWordWrap(True)
@@ -49,45 +48,27 @@ class CounterWidget(QWidget):
         self.label.setAlignment(QtGui.Qt.AlignLeft)
         self.value_label.setFont(QtGui.QFont("Sanserif", font_size))
         
-        
         self.mainlayout.addWidget(self.label)
+
+        self.btn_dec = QPushButton('-')
+        self.btn_dec.clicked.connect(self.decrease)
+        self.mainlayout.addWidget(self.btn_dec)
+
         self.btn_inc = QPushButton('+')
         self.btn_inc.clicked.connect(self.increase)
-        self.mainlayout.addWidget(self.btn_inc)
         self.mainlayout.addWidget(self.value_label)
+        self.mainlayout.addWidget(self.btn_inc)
 
         self.setLayout(self.mainlayout)
 
     def increase(self):
+        """
+        Increase the count by 1, update the display, and emit the update signal with the new count value.
+        """
         self.count += 1
         self.value_label.setText(str(self.count))
-        self.updateScoreSignal.emit(self.text, self.count)
+        self.parent.updateScore(self.text, self.count)
 
-    def get_count(self):
-        return self.count
-
-    def set_count(self, value):
-        self.count = value
-        self.value_label.setText(str(self.count))
-
-class LevelCounterWidget(CounterWidget):
-    """
-    A specialized CounterWidget for tracking levels, without a decrement button and a different layout.
-    """
-    def __init__(self, parent,updateSignal:pyqtSignal,label_text:str, text_size=12, font_size=12,count=0):
-        super().__init__(parent,updateSignal,label_text, text_size, font_size,count)
-        self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-
-class ScoreCounterWidget(CounterWidget):
-    """
-    A specialized CounterWidget for tracking scores, with a decrement button and a different layout.
-    """
-    def __init__(self, parent,updateSignal:pyqtSignal,label_text:str, text_size=12, font_size=12,count=0):
-        super().__init__(parent,updateSignal,label_text, text_size, font_size,count)
-        self.btn_dec = QPushButton('-')
-        self.btn_dec.clicked.connect(self.decrease)
-        self.mainlayout.addWidget(self.btn_dec)
-    
     def decrease(self):
         """
         Decrease the count by 1, ensuring it does not go below 0, and update the display and emit the update signal.
@@ -96,4 +77,13 @@ class ScoreCounterWidget(CounterWidget):
         """
         self.count = max(0, self.count -1)
         self.value_label.setText(str(self.count))
-        self.updateScoreSignal.emit(self.text, self.count)
+        self.parent.updateScore(self.text, self.count)
+        
+    def get_count(self):
+        return self.count
+
+    def set_count(self, value):
+        self.count = value
+        self.value_label.setText(str(self.count))
+
+    

@@ -20,7 +20,7 @@ class MoveStruct:
         accuracy (int): The accuracy of the move.
         code (str): The code of the move.
     """
-    def __init__(self,moveStruct):
+    def __init__(self,moveStruct:list):
         self.name=moveStruct[0]
         self.type=moveStruct[1]
         self.PP=moveStruct[2]
@@ -35,15 +35,29 @@ class MoveStruct:
         self.power=source.power
         self.accuracy=source.accuracy
         self.code = source.code
- 
+    
+    def updateMove(self, moveStruct:list):
+        self.name=moveStruct[0]
+        self.type=moveStruct[1]
+        self.PP=moveStruct[2]
+        self.power=moveStruct[3]
+        self.accuracy=moveStruct[4] 
+        self.code = moveStruct[5]
 
 class MoveWidgetsGroup(QWidget):
     """
     A class made to group different widgets related to the moves. One instance account for a single move, and contains the move name, the PP and the type. The layout is horizontal, with the name on the left, then the power, PP. STAB moves are higlited, and the power is increased
     
+    Attributes:        
+        nameLabel (QLabel): The label displaying the move name.
+        powLabel (QLabel): The label displaying the power of the move.
+        precLabel (QLabel): The label displaying the accuracy of the move.
+        PPLabel (QLabel): The label displaying the PP of the move.
+        parent_types (tuple): The types of the Pokemon using the move, used to determine if the move is STAB or not.
+        moveStruct (MoveStruct): The MoveStruct object containing the move's information, used to
     """
 
-    def __init__(self, parent=None, parent_types=(), moveStruct:MoveStruct=None):
+    def __init__(self, parent=None, parent_types=(), moveStruct:list=None):
         """
         Class constructor. Initialize the widgets in the group.
 
@@ -53,8 +67,7 @@ class MoveWidgetsGroup(QWidget):
         """
         super().__init__(parent)
         self.parent_types = parent_types
-        self.moveStruct = moveStruct
-
+        self.moveStruct = None
         # Create the labels for the move name, power, accuracy and PP
         self.nameLabel = self.create_label(200, Qt.AlignLeft)
         self.powLabel = self.create_label(80, Qt.AlignRight)
@@ -112,13 +125,16 @@ class MoveWidgetsGroup(QWidget):
         self.PPLabel.setText(source.PPLabel.text())
         self.PPLabel.setStyleSheet(source.PPLabel.styleSheet())
 
-    def updateMove(self, moveStruct:MoveStruct):
+    def updateMove(self, moveStruct:list):
         """
         Updates the move information and the widgets from a MoveStruct object. This is used to update the move information when it changes in the game.
 
         :param moveStruct: The MoveStruct object containing the new move information.
         """
-        self.moveStruct.copy(moveStruct)
+        if not self.moveStruct:
+            self.moveStruct = MoveStruct(moveStruct)
+        else:
+            self.moveStruct.updateMove(moveStruct)
 
         if not self.moveStruct.name:
             # If move is a non-move placeholder, clear the widgets and finish
