@@ -1,7 +1,7 @@
 
 from configparser import ConfigParser
 from PyQt5.QtWidgets import (QApplication, QErrorMessage)
-from src.Natura import Natura
+from src.GUI.NaturaMainWindow import NaturaMainWindow
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QPushButton
 from PyQt5 import QtGui
 
@@ -116,7 +116,7 @@ if dialog.exec_() == QDialog.Accepted:
 else:
     exit()
 try:
-    window = Natura(selected_value.lower())
+    window = NaturaMainWindow(selected_value.lower(),config,"3.0")
 except:
     exit()
 if not  window:

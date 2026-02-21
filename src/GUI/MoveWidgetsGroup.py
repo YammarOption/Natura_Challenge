@@ -97,7 +97,7 @@ class MoveWidgetsGroup(QWidget):
     
     #----
 
-    def getWidgets(self):
+    def getWidgets(self)->list:
         """
         Returns the widgets in the group as a list, in the order: move name, power, accuracy, PP.
         """

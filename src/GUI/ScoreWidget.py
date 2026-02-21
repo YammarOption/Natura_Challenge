@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QSizePolicy
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
-class SimpleCounter(QWidget):
+class ScoreWidget(QWidget):
     """
     A simple counter widget that displays a label and a value, with the value's color changing based on its magnitude. Starting value is set to 100.000.
     
